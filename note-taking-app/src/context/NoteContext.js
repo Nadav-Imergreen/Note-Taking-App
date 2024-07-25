@@ -1,6 +1,6 @@
 import React, { createContext, useState, useContext, useEffect } from 'react';
-import { db, auth } from '../services/firebaseConfig'; // Ensure correct import
-import { collection, addDoc, updateDoc, deleteDoc, doc, onSnapshot, query } from 'firebase/firestore';
+import { db, auth } from '../services/firebaseConfig';
+import { collection, addDoc, updateDoc, deleteDoc, doc, onSnapshot, query, where } from 'firebase/firestore';
 import { onAuthStateChanged } from 'firebase/auth';
 
 export const NoteContext = createContext();
@@ -12,6 +12,7 @@ export const useNotes = () => {
 export const NoteProvider = ({ children }) => {
     const [notes, setNotes] = useState([]);
     const [userId, setUserId] = useState(null);
+    const [loading, setLoading] = useState(true);
 
     useEffect(() => {
         const unsubscribe = onAuthStateChanged(auth, (user) => {
@@ -20,6 +21,7 @@ export const NoteProvider = ({ children }) => {
             } else {
                 setUserId(null);
             }
+            setLoading(false);
         });
 
         return () => unsubscribe();
@@ -28,7 +30,7 @@ export const NoteProvider = ({ children }) => {
     useEffect(() => {
         if (!userId) return;
 
-        const q = query(collection(db, 'users', userId, 'notebooks', 'notebookId', 'notes'));
+        const q = query(collection(db, 'users'), where('userId', '==', userId));
         const unsubscribe = onSnapshot(q, (snapshot) => {
             const notesData = snapshot.docs.map(doc => ({
                 id: doc.id,
@@ -40,33 +42,41 @@ export const NoteProvider = ({ children }) => {
         return () => unsubscribe();
     }, [userId]);
 
-    const addNote = async (content) => {
+    const addNote = async (content, category) => {
         if (!userId) return;
 
-        console.log(`${userId} in add note func`);
         const note = {
+            userId,
             content,
+            category,
             createdAt: new Date()
         };
-        await addDoc(collection(db, 'users', userId, 'notebooks', 'notebookId', 'notes'), note);
+        const notesRef = collection(db, 'users');
+        await addDoc(notesRef, note)
+            .then(() => console.log('INFO: User note saved to Firestore'))
+            .catch((error) => console.error('WARNING: Error saving user to Firestore:', error));
     };
 
     const updateNote = async (id, content) => {
         if (!userId) return;
 
-        const noteRef = doc(db, 'users', userId, 'notebooks', 'notebookId', 'notes', id);
-        await updateDoc(noteRef, { content });
+        const noteRef = doc(db, 'users', id);
+        await updateDoc(noteRef, { content })
+            .then(() => console.log('INFO: User note updated in Firestore'))
+            .catch((error) => console.error('WARNING: Error updating user in Firestore:', error));
     };
 
     const deleteNote = async (id) => {
         if (!userId) return;
 
-        const noteRef = doc(db, 'users', userId, 'notebooks', 'notebookId', 'notes', id);
-        await deleteDoc(noteRef);
+        const noteRef = doc(db, 'users', id);
+        await deleteDoc(noteRef)
+            .then(() => console.log('INFO: User note deleted from Firestore'))
+            .catch((error) => console.error('WARNING: Error deleting user from Firestore:', error));
     };
 
-    if (!userId) {
-        return null; // or a loading spinner if you prefer
+    if (loading) {
+        return <div>Loading...</div>; // Or a spinner component
     }
 
     return (

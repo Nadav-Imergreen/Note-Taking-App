@@ -1,21 +1,32 @@
-// src/App.js
-
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import LoginForm from './components/LoginForm';
 import RegistrationForm from './components/RegistrationForm';
 import AddNoteForm from './components/AddNoteForm';
 import NoteList from './components/NoteList';
 import { NoteProvider } from './context/NoteContext';
+import { auth } from './services/firebaseConfig';
+import { onAuthStateChanged } from 'firebase/auth';
+import {handleSignOut} from "./services/auth";
 
 const App = () => {
     const [isAuthenticated, setIsAuthenticated] = useState(false);
+    const [showNotes, setShowNotes] = useState(false);
+
+    useEffect(() => {
+        const unsubscribe = onAuthStateChanged(auth, (user) => {
+            setIsAuthenticated(!!user);
+        });
+        return () => unsubscribe();
+    }, []);
 
     const handleLoginSuccess = () => {
         setIsAuthenticated(true);
     };
 
     const handleLogout = () => {
+        handleSignOut();
         setIsAuthenticated(false);
+        setShowNotes(false);
     };
 
     return (
@@ -30,8 +41,9 @@ const App = () => {
                 ) : (
                     <>
                         <button onClick={handleLogout} className="btn btn-secondary">Logout</button>
+                        <button onClick={() => setShowNotes(!showNotes)} className="btn btn-info">User Notes</button>
                         <AddNoteForm />
-                        <NoteList />
+                        {showNotes && <NoteList />}
                     </>
                 )}
             </div>

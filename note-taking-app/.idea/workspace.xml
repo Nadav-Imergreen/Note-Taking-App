@@ -5,12 +5,11 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="c766b0ea-5e69-4594-abe7-269d8945c0a5" name="Changes" comment="login with firebase">
-      <change afterPath="$PROJECT_DIR$/.idea/vcs.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/components/AddNoteForm.js" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/components/AddNotebookForm.js" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/components/NoteItem.js" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/components/NoteList.js" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/context/NoteContext.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/App.js" beforeDir="false" afterPath="$PROJECT_DIR$/src/App.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/components/NoteItem.js" beforeDir="false" afterPath="$PROJECT_DIR$/src/components/Note.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/components/NoteList.js" beforeDir="false" afterPath="$PROJECT_DIR$/src/components/NoteList.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/context/NoteContext.js" beforeDir="false" afterPath="$PROJECT_DIR$/src/context/NoteContext.js" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -89,7 +88,7 @@
       <option name="presentableId" value="Default" />
       <updated>1721561168758</updated>
       <workItem from="1721561188933" duration="1087000" />
-      <workItem from="1721563273973" duration="12891000" />
+      <workItem from="1721563273973" duration="14409000" />
     </task>
     <task id="LOCAL-00001" summary="login with firebase">
       <option name="closed" value="true" />
