@@ -1,6 +1,6 @@
 import React, { createContext, useState, useContext, useEffect } from 'react';
 import { db, auth } from '../services/firebaseConfig';
-import { collection, addDoc, updateDoc, deleteDoc, doc, onSnapshot, query, where } from 'firebase/firestore';
+import { collection, addDoc, getDocs, updateDoc, deleteDoc, doc, onSnapshot, query, where, getDoc } from 'firebase/firestore';
 import { onAuthStateChanged } from 'firebase/auth';
 
 export const NoteContext = createContext();
@@ -11,7 +11,7 @@ export const useNotes = () => {
 
 export const NoteProvider = ({ children }) => {
     const [notes, setNotes] = useState([]);
-    const [userId, setUserId] = useState(null);
+    const [userId, setUserId] = useState('');
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
@@ -61,6 +61,16 @@ export const NoteProvider = ({ children }) => {
         if (!userId) return;
 
         const noteRef = doc(db, 'users', id);
+        const noteSnapshot = await getDoc(noteRef);
+        if (noteSnapshot.exists()) {
+            const noteData = noteSnapshot.data();
+            const versionRef = collection(noteRef, 'versions');
+            await addDoc(versionRef, {
+                ...noteData,
+                versionTimestamp: new Date()
+            });
+        }
+
         await updateDoc(noteRef, { content })
             .then(() => console.log('INFO: User note updated in Firestore'))
             .catch((error) => console.error('WARNING: Error updating user in Firestore:', error));
@@ -75,12 +85,42 @@ export const NoteProvider = ({ children }) => {
             .catch((error) => console.error('WARNING: Error deleting user from Firestore:', error));
     };
 
+    const getNoteVersions = async (noteId) => {
+        if (!userId) return [];
+
+        const noteRef = doc(db, 'users', noteId);
+        const versionRef = collection(noteRef, 'versions');
+        const versionSnapshot = await getDocs(versionRef);
+
+        return versionSnapshot.docs.map(doc => ({
+            id: doc.id,
+            ...doc.data()
+        }));
+    };
+
+    const revertToVersion = async (noteId, versionId) => {
+        if (!userId) return;
+
+        const noteRef = doc(db, 'users', noteId);
+        const versionRef = doc(noteRef, 'versions', versionId);
+        const versionSnapshot = await getDoc(versionRef);
+        if (versionSnapshot.exists()) {
+            const versionData = versionSnapshot.data();
+            await updateDoc(noteRef, {
+                content: versionData.content,
+                category: versionData.category,
+                createdAt: versionData.createdAt,
+                updatedAt: new Date()
+            });
+        }
+    };
+
     if (loading) {
         return <div>Loading...</div>; // Or a spinner component
     }
 
     return (
-        <NoteContext.Provider value={{ notes, addNote, updateNote, deleteNote }}>
+        <NoteContext.Provider value={{ notes, addNote, updateNote, deleteNote, getNoteVersions, revertToVersion }}>
             {children}
         </NoteContext.Provider>
     );
