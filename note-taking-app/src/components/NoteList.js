@@ -54,7 +54,7 @@ const NoteList = () => {
 
     return (
         <div className="container mt-5">
-            <h2>User Notes</h2>
+            <h2>Notes</h2>
             {Object.keys(groupedNotes).length > 0 ? (
                 Object.keys(groupedNotes).map((category) => (
                     <div key={category} className="mb-4">

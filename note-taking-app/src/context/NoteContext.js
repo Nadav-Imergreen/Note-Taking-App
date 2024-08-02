@@ -1,7 +1,6 @@
 import React, { createContext, useState, useContext, useEffect } from 'react';
-import { db, auth } from '../services/firebaseConfig';
-import { collection, addDoc, getDocs, updateDoc, deleteDoc, doc, onSnapshot, query, where, getDoc } from 'firebase/firestore';
-import { onAuthStateChanged } from 'firebase/auth';
+import { db } from '../services/firebaseConfig';
+import { collection, addDoc, getDocs, updateDoc, deleteDoc, doc, onSnapshot, getDoc } from 'firebase/firestore';
 
 export const NoteContext = createContext();
 
@@ -11,56 +10,37 @@ export const useNotes = () => {
 
 export const NoteProvider = ({ children }) => {
     const [notes, setNotes] = useState([]);
-    const [userId, setUserId] = useState('');
     const [loading, setLoading] = useState(true);
 
+
     useEffect(() => {
-        const unsubscribe = onAuthStateChanged(auth, (user) => {
-            if (user) {
-                setUserId(user.uid);
-            } else {
-                setUserId(null);
-            }
+        const notesRef = collection(db, 'notes');
+        const unsubscribe = onSnapshot(notesRef, (snapshot) => {
+            const notesData = snapshot.docs.map(doc => ({
+                id: doc.id,
+                ...doc.data()
+            }));
+            setNotes(notesData);
             setLoading(false);
         });
 
         return () => unsubscribe();
     }, []);
 
-    useEffect(() => {
-        if (!userId) return;
-
-        const q = query(collection(db, 'users'), where('userId', '==', userId));
-        const unsubscribe = onSnapshot(q, (snapshot) => {
-            const notesData = snapshot.docs.map(doc => ({
-                id: doc.id,
-                ...doc.data()
-            }));
-            setNotes(notesData);
-        });
-
-        return () => unsubscribe();
-    }, [userId]);
-
     const addNote = async (content, category) => {
-        if (!userId) return;
-
         const note = {
-            userId,
             content,
             category,
             createdAt: new Date()
         };
-        const notesRef = collection(db, 'users');
+        const notesRef = collection(db, 'notes');
         await addDoc(notesRef, note)
-            .then(() => console.log('INFO: User note saved to Firestore'))
-            .catch((error) => console.error('WARNING: Error saving user to Firestore:', error));
+            .then(() => console.log('INFO: Note saved to Firestore'))
+            .catch((error) => console.error('WARNING: Error saving note to Firestore:', error));
     };
 
     const updateNote = async (id, content) => {
-        if (!userId) return;
-
-        const noteRef = doc(db, 'users', id);
+        const noteRef = doc(db, 'notes', id);
         const noteSnapshot = await getDoc(noteRef);
         if (noteSnapshot.exists()) {
             const noteData = noteSnapshot.data();
@@ -72,23 +52,19 @@ export const NoteProvider = ({ children }) => {
         }
 
         await updateDoc(noteRef, { content })
-            .then(() => console.log('INFO: User note updated in Firestore'))
-            .catch((error) => console.error('WARNING: Error updating user in Firestore:', error));
+            .then(() => console.log('INFO: Note updated in Firestore'))
+            .catch((error) => console.error('WARNING: Error updating note in Firestore:', error));
     };
 
     const deleteNote = async (id) => {
-        if (!userId) return;
-
-        const noteRef = doc(db, 'users', id);
+        const noteRef = doc(db, 'notes', id);
         await deleteDoc(noteRef)
-            .then(() => console.log('INFO: User note deleted from Firestore'))
-            .catch((error) => console.error('WARNING: Error deleting user from Firestore:', error));
+            .then(() => console.log('INFO: Note deleted from Firestore'))
+            .catch((error) => console.error('WARNING: Error deleting note from Firestore:', error));
     };
 
     const getNoteVersions = async (noteId) => {
-        if (!userId) return [];
-
-        const noteRef = doc(db, 'users', noteId);
+        const noteRef = doc(db, 'notes', noteId);
         const versionRef = collection(noteRef, 'versions');
         const versionSnapshot = await getDocs(versionRef);
 
@@ -99,15 +75,12 @@ export const NoteProvider = ({ children }) => {
     };
 
     const revertToVersion = async (noteId, versionId) => {
-        if (!userId) return;
-
-        const noteRef = doc(db, 'users', noteId);
+        const noteRef = doc(db, 'notes', noteId);
         const versionRef = doc(noteRef, 'versions', versionId);
         const versionSnapshot = await getDoc(versionRef);
 
         if (versionSnapshot.exists()) {
             const versionData = versionSnapshot.data();
-            // Add the current note as a new version before reverting
             const currentNoteSnapshot = await getDoc(noteRef);
             if (currentNoteSnapshot.exists()) {
                 const currentNoteData = currentNoteSnapshot.data();
@@ -118,7 +91,6 @@ export const NoteProvider = ({ children }) => {
                 });
             }
 
-            // Update the note to the selected version
             await updateDoc(noteRef, {
                 content: versionData.content,
                 category: versionData.category,
@@ -126,13 +98,12 @@ export const NoteProvider = ({ children }) => {
                 updatedAt: new Date()
             });
 
-            // Remove the reverted version from history
             await deleteDoc(versionRef);
         }
     };
 
     if (loading) {
-        return <div>Loading...</div>; // Or a spinner component
+        return <div>Loading...</div>;
     }
 
     return (

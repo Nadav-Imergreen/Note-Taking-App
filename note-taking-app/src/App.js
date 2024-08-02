@@ -47,7 +47,7 @@ const App = () => {
                         <div className="mb-4">
                             <button onClick={handleLogout} className="btn btn-secondary mr-2">Logout</button>
                             <button onClick={() => setShowNotes(!showNotes)} className="btn btn-info">
-                                {showNotes ? 'Hide Notes' : 'User Notes'}
+                                {showNotes ? 'Hide Notes' : 'Notes'}
                             </button>
                         </div>
                         <div className="mb-4">
