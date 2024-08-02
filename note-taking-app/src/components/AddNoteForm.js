@@ -4,18 +4,18 @@ import { useNotes } from '../context/NoteContext';
 const AddNoteForm = () => {
     const [content, setContent] = useState('');
     const [category, setCategory] = useState('Personal');
-    const { addNote } = useNotes(); // Ensure this is not undefined
+    const { addNote } = useNotes();
 
     const handleSubmit = async (e) => {
         e.preventDefault();
         await addNote(content, category);
         setContent('');
-        setCategory('Personal'); // Reset category to default
+        setCategory('Personal');
     };
 
     return (
-        <form onSubmit={handleSubmit}>
-            <div className="form-group">
+        <form onSubmit={handleSubmit} className="container mt-5">
+            <div className="form-group mb-3">
                 <label htmlFor="note-content">New Note:</label>
                 <input
                     type="text"
@@ -26,7 +26,7 @@ const AddNoteForm = () => {
                     required
                 />
             </div>
-            <div className="form-group">
+            <div className="form-group mb-3">
                 <label htmlFor="note-category">Category:</label>
                 <select
                     id="note-category"

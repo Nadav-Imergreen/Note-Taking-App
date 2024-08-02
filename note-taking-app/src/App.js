@@ -6,7 +6,7 @@ import NoteList from './components/NoteList';
 import { NoteProvider } from './context/NoteContext';
 import { auth } from './services/firebaseConfig';
 import { onAuthStateChanged } from 'firebase/auth';
-import {handleSignOut} from "./services/auth";
+import { handleSignOut } from './services/auth';
 
 const App = () => {
     const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -31,18 +31,28 @@ const App = () => {
 
     return (
         <NoteProvider>
-            <div className="App">
-                <h1>Note-Taking App</h1>
+            <div className="App container mt-5">
+                <h1 className="mb-4">Note-Taking App</h1>
                 {!isAuthenticated ? (
                     <>
-                        <RegistrationForm onSuccess={handleLoginSuccess} />
-                        <LoginForm onSuccess={handleLoginSuccess} />
+                        <div className="mb-4">
+                            <RegistrationForm onSuccess={handleLoginSuccess} />
+                        </div>
+                        <div className="mb-4">
+                            <LoginForm onSuccess={handleLoginSuccess} />
+                        </div>
                     </>
                 ) : (
                     <>
-                        <button onClick={handleLogout} className="btn btn-secondary">Logout</button>
-                        <button onClick={() => setShowNotes(!showNotes)} className="btn btn-info">User Notes</button>
-                        <AddNoteForm />
+                        <div className="mb-4">
+                            <button onClick={handleLogout} className="btn btn-secondary mr-2">Logout</button>
+                            <button onClick={() => setShowNotes(!showNotes)} className="btn btn-info">
+                                {showNotes ? 'Hide Notes' : 'User Notes'}
+                            </button>
+                        </div>
+                        <div className="mb-4">
+                            <AddNoteForm />
+                        </div>
                         {showNotes && <NoteList />}
                     </>
                 )}

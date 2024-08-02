@@ -26,12 +26,10 @@ const NoteList = () => {
 
     const handleViewVersions = async (noteId) => {
         if (selectedNoteId === noteId && showHistory) {
-            // If clicking the same note and history is already shown, hide it
             setShowHistory(false);
             setSelectedNoteId(null);
             setVersions([]);
         } else {
-            // Else, show history for the new note
             const versions = await getNoteVersions(noteId);
             setShowHistory(true);
             setSelectedNoteId(noteId);
@@ -46,7 +44,6 @@ const NoteList = () => {
         setShowHistory(false);
     };
 
-    // Group notes by category
     const groupedNotes = notes.reduce((acc, note) => {
         if (!acc[note.category]) {
             acc[note.category] = [];
@@ -56,49 +53,53 @@ const NoteList = () => {
     }, {});
 
     return (
-        <div>
+        <div className="container mt-5">
             <h2>User Notes</h2>
             {Object.keys(groupedNotes).length > 0 ? (
                 Object.keys(groupedNotes).map((category) => (
-                    <div key={category}>
+                    <div key={category} className="mb-4">
                         <h3>{category}</h3>
                         <ul className="list-group">
                             {groupedNotes[category].map((note) => (
-                                <li key={note.id} className="list-group-item">
+                                <li key={note.id} className="list-group-item mb-3">
                                     {editingNoteId === note.id ? (
                                         <div>
                                             <input
                                                 type="text"
-                                                className="form-control"
+                                                className="form-control mb-2"
                                                 value={editContent}
                                                 onChange={(e) => setEditContent(e.target.value)}
                                             />
-                                            <button onClick={() => handleEdit(note.id)} className="btn btn-primary">Save</button>
+                                            <button onClick={() => handleEdit(note.id)} className="btn btn-primary mr-2">Save</button>
                                             <button onClick={cancelEditing} className="btn btn-secondary">Cancel</button>
                                         </div>
                                     ) : (
                                         <div>
                                             <p>{note.content}</p>
-                                            <button onClick={() => startEditing(note)} className="btn btn-primary">Edit</button>
-                                            <button onClick={() => deleteNote(note.id)} className="btn btn-danger">Delete</button>
+                                            <button onClick={() => startEditing(note)} className="btn btn-primary mr-2">Edit</button>
+                                            <button onClick={() => deleteNote(note.id)} className="btn btn-danger mr-2">Delete</button>
                                             <button onClick={() => handleViewVersions(note.id)} className="btn btn-info">
                                                 {selectedNoteId === note.id && showHistory ? 'Hide Versions' : 'View Versions'}
                                             </button>
                                         </div>
                                     )}
                                     {selectedNoteId === note.id && showHistory && (
-                                        <div>
+                                        <div className="mt-3">
                                             <h4>Version History</h4>
-                                            <ul className="list-group">
-                                                {versions.map((version) => (
-                                                    <li key={version.id} className="list-group-item">
-                                                        <p>{version.content}</p>
-                                                        <button onClick={() => handleRevertToVersion(note.id, version.id)} className="btn btn-warning">
-                                                            Revert to this version
-                                                        </button>
-                                                    </li>
-                                                ))}
-                                            </ul>
+                                            {versions.length > 0 ? (
+                                                <ul className="list-group">
+                                                    {versions.map((version) => (
+                                                        <li key={version.id} className="list-group-item mb-2">
+                                                            <p>{version.content}</p>
+                                                            <button onClick={() => handleRevertToVersion(note.id, version.id)} className="btn btn-warning">
+                                                                Revert to this version
+                                                            </button>
+                                                        </li>
+                                                    ))}
+                                                </ul>
+                                            ) : (
+                                                <p>No history to show</p>
+                                            )}
                                         </div>
                                     )}
                                 </li>
