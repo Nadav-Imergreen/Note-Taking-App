@@ -10,7 +10,7 @@ Available Scripts
  2. cd Note-Taking-App/note-taking-app 
  3. npm install
  4. nom start
- 5. 
+    
 if everything is good a webpage should be opened in port http://localhost:3000 and a login/register page will appear. 
 
 
