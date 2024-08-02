@@ -104,14 +104,30 @@ export const NoteProvider = ({ children }) => {
         const noteRef = doc(db, 'users', noteId);
         const versionRef = doc(noteRef, 'versions', versionId);
         const versionSnapshot = await getDoc(versionRef);
+
         if (versionSnapshot.exists()) {
             const versionData = versionSnapshot.data();
+            // Add the current note as a new version before reverting
+            const currentNoteSnapshot = await getDoc(noteRef);
+            if (currentNoteSnapshot.exists()) {
+                const currentNoteData = currentNoteSnapshot.data();
+                const versionCollectionRef = collection(noteRef, 'versions');
+                await addDoc(versionCollectionRef, {
+                    ...currentNoteData,
+                    versionTimestamp: new Date()
+                });
+            }
+
+            // Update the note to the selected version
             await updateDoc(noteRef, {
                 content: versionData.content,
                 category: versionData.category,
                 createdAt: versionData.createdAt,
                 updatedAt: new Date()
             });
+
+            // Remove the reverted version from history
+            await deleteDoc(versionRef);
         }
     };
 
